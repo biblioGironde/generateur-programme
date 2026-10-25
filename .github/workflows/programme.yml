@@ -11,6 +11,7 @@ on:
       - 'fonts/**'
       - 'data/**'
       - 'cli.js'
+      - 'anonymiser.js'
       - 'package*.json'
       - '.github/workflows/programme.yml'
   workflow_dispatch:

@@ -1,11 +1,11 @@
 node_modules/
-output/
+_site/
 sortie/
-public/sorties/
-config/
 .DS_Store
 
 # Exports bruts du formulaire (données personnelles) : ne jamais les versionner
 entree/programmation_*
 *-brut.*
 *_brut.*
+output/
+public/

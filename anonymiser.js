@@ -3,7 +3,7 @@
 //   node anonymiser.js export-brut.tsv entree/export.tsv
 const fs = require('fs');
 const path = require('path');
-const { anonymiser } = require('./lib/anonymiser');
+const { anonymiserFichier } = require('./lib/node');
 
 const [src, dest = path.join('entree', 'export.tsv')] = process.argv.slice(2);
 if (!src) {
@@ -11,7 +11,7 @@ if (!src) {
   process.exit(1);
 }
 try {
-  const r = anonymiser(src, src);
+  const r = anonymiserFichier(src);
   fs.mkdirSync(path.dirname(path.resolve(dest)), { recursive: true });
   fs.writeFileSync(dest, r.tsv);
   console.log(`${r.lignes} lignes, ${r.colonnes} colonnes conservées -> ${dest}`);
