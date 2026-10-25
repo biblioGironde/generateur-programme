@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Générateur de programme · Quinzaine du numérique</title>
+<style>
+  :root {
+    --vert: #47b654; --rose: #ee3063; --jaune: #ffde1e; --violet: #963c96;
+    --encre: #222; --gris: #6b6b6b; --ligne: #e4e4e4; --fond: #f6f6f3; --carte: #fff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--encre); background: var(--fond); }
+  header { background: var(--vert); color: #fff; padding: 22px 24px 18px; }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+  header p { margin: 4px 0 0; opacity: .9; }
+  main { max-width: 1060px; margin: 0 auto; padding: 20px 16px 120px; }
+  section { background: var(--carte); border: 1px solid var(--ligne); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+  section > h2 { margin: 0 0 12px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  section > h2::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--rose); }
+  section:nth-of-type(3n+2) > h2::before { background: var(--vert); }
+  section:nth-of-type(3n) > h2::before { background: var(--jaune); }
+  .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px 18px; }
+  label { display: block; font-size: 13px; color: var(--gris); }
+  label > input:not([type=checkbox]):not([type=color]), label > select, label > textarea { display: block; width: 100%; margin-top: 4px; }
+  input, select, textarea, button { font: inherit; }
+  input[type=text], input[type=number], input[type=date], select, textarea {
+    padding: 7px 9px; border: 1px solid #cfcfcf; border-radius: 6px; background: #fff; color: var(--encre);
+  }
+  textarea { min-height: 96px; resize: vertical; }
+  input[type=file] { margin-top: 4px; width: 100%; font-size: 13px; }
+  .case { display: flex; align-items: center; gap: 8px; color: var(--encre); font-size: 14px; }
+  .couleur { display: flex; align-items: center; gap: 8px; padding: 6px 0; color: var(--encre); font-size: 14px; }
+  .couleur input[type=color] { width: 34px; height: 28px; padding: 0; border: 1px solid #cfcfcf; border-radius: 6px; background: none; cursor: pointer; }
+  .couleur input[type=text] { width: 84px; font-family: ui-monospace, monospace; font-size: 13px; padding: 4px 6px; }
+  .couleur span { flex: 1; }
+  h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--gris); margin: 14px 0 4px; }
+  .aide { font-size: 13px; color: var(--gris); margin: 4px 0 10px; }
+  code { background: #f0f0ec; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .intro { border: 1px solid var(--ligne); border-radius: 8px; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 200px; gap: 12px; }
+  .intro .cote { display: flex; flex-direction: column; gap: 4px; }
+  .intro .apercu { border-radius: 6px; padding: 8px; font-size: 11px; font-weight: 700; line-height: 1.5; height: 64px; overflow: hidden; }
+  .btn { border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer; font-weight: 600; }
+  .btn.principal { background: var(--rose); color: #fff; }
+  .btn.principal:disabled { opacity: .5; cursor: wait; }
+  .btn.second { background: #fff; border: 1px solid #cfcfcf; color: var(--encre); }
+  .btn.petit { padding: 5px 10px; font-size: 13px; font-weight: 500; }
+  .barre { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--ligne); padding: 12px 16px; display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; z-index: 5; }
+  .barre #etat { font-size: 14px; color: var(--gris); min-width: 200px; }
+  .analyse { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: #f2faf3; border: 1px solid #cfe9d2; font-size: 14px; display: none; }
+  .analyse.erreur { background: #fdf0f3; border-color: #f6c6d3; }
+  .analyse ul { margin: 6px 0 0; padding-left: 18px; color: var(--gris); font-size: 13px; }
+  #resultat { display: none; }
+  #resultat iframe { width: 100%; height: 720px; border: 1px solid var(--ligne); border-radius: 8px; margin-top: 12px; background: #ddd; }
+  #resultat .liens a { display: inline-block; margin-right: 10px; }
+  .avert { color: #a1442c; font-size: 14px; }
+  @media (max-width: 640px) {
+    .intro { grid-template-columns: 1fr; }
+    #resultat iframe { height: 460px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Programme de la Quinzaine du numérique</h1>
+  <p>Export du formulaire → programme PDF A5 (et export Kirby pour le site)</p>
+</header>
+
+<main>
+  <form id="form">
+
+  <section>
+    <h2>Fichiers</h2>
+    <div class="grille">
+      <label>Export du formulaire (TSV, CSV ou Excel) *
+        <input type="file" name="export" accept=".tsv,.csv,.txt,.xlsx,.xls" required>
+      </label>
+      <label>Couverture (JPG, PNG ou PDF)
+        <input type="file" name="couverture" accept=".jpg,.jpeg,.png,.pdf">
+      </label>
+      <label>4<sup>e</sup> de couverture (facultatif)
+        <input type="file" name="quatrieme" accept=".jpg,.jpeg,.png,.pdf">
+      </label>
+      <label>Images intercalaires (JPG ou PNG, plusieurs possibles)
+        <input type="file" name="intercalaires" accept=".jpg,.jpeg,.png" multiple>
+      </label>
+    </div>
+    <div id="analyse" class="analyse"></div>
+  </section>
+
+  <section>
+    <h2>Sélection et ordre des animations</h2>
+    <div class="grille">
+      <label>Période : du
+        <input type="date" data-r="periodeDebut">
+      </label>
+      <label>au
+        <input type="date" data-r="periodeFin">
+      </label>
+      <label>Ordre des fiches
+        <select data-r="tri">
+          <option value="date">Chronologique</option>
+          <option value="commune">Par commune</option>
+        </select>
+      </label>
+      <label>Numéros de saisie à exclure
+        <input type="text" data-r="idsExclus" placeholder="ex. 12, 57, 203">
+      </label>
+      <label>Nom du fichier PDF
+        <input type="text" data-r="nomFichier">
+      </label>
+    </div>
+    <p class="aide">Période vide : l'édition la plus récente est détectée automatiquement.</p>
+    <label class="case"><input type="checkbox" data-r="inclureSansDate"> Inclure les animations sans date (« date à préciser »)</label>
+    <label class="case"><input type="checkbox" data-r="uneAnimationParPage"> Une seule animation par page</label>
+  </section>
+
+  <section>
+    <h2>Couleurs</h2>
+    <div class="grille">
+      <div>
+        <h3>Fiches animations</h3>
+        <div data-couleurs="date:Date et heure|infos:Durée, public, inscription|bibliotheque:Bibliothèque / commune|liens:Liens|themes:Thématiques|titre:Titre de l'animation|description:Description"></div>
+      </div>
+      <div>
+        <h3>Tableau du programme</h3>
+        <div data-couleurs="tableEnteteFond:Fond de l'en-tête|tableEnteteTexte:Texte de l'en-tête|tableLigneFond:Fond des lignes impaires|tableLigneAltFond:Fond des lignes paires|tableTexte:Texte du tableau"></div>
+      </div>
+      <div>
+        <h3>Carte</h3>
+        <div data-couleurs="carteFond:Fond de page|carteCommunes:Communes|carteContours:Contours|carteMarqueur:Bulles|carteEtiquettes:Noms des communes|carteTitre:Titre de la carte"></div>
+        <h3>Livret</h3>
+        <div data-couleurs="pagesComplement:Pages de complément"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tailles des textes (pt)</h2>
+    <div class="grille">
+      <label>Date <input type="number" step="0.5" min="8" max="30" data-r="tailles.date"></label>
+      <label>Commune <input type="number" step="0.5" min="8" max="24" data-r="tailles.commune"></label>
+      <label>Titre de l'animation <input type="number" step="0.5" min="7" max="18" data-r="tailles.titre"></label>
+      <label>Description <input type="number" step="0.25" min="5.5" max="11" data-r="tailles.description"></label>
+      <label>Infos et liens <input type="number" step="0.25" min="5.5" max="10" data-r="tailles.infos"></label>
+      <label>Tableau <input type="number" step="0.25" min="5.5" max="10" data-r="tailles.tableau"></label>
+      <label>Pages d'intro (maximum) <input type="number" step="1" min="10" max="32" data-r="tailles.intro"></label>
+      <label>Description mini pour garder 2 fiches par page <input type="number" step="0.25" min="5.5" max="10" data-r="tailleMiniDemiPage"></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pages d'introduction</h2>
+    <p class="aide">Variables calculées : <code>{nb_bibliotheques}</code> <code>{nb_animations}</code> <code>{periode}</code>. La taille du texte s'adapte pour tenir sur la page.</p>
+    <div id="intros"></div>
+    <button type="button" class="btn second petit" id="ajoutIntro">+ Ajouter une page</button>
+  </section>
+
+  <section>
+    <h2>Carte, images intercalaires, tableau</h2>
+    <div class="grille">
+      <div>
+        <h3>Carte des communes</h3>
+        <label class="case"><input type="checkbox" data-r="carte.afficher"> Afficher la carte</label>
+        <label>Placée après la page d'intro n°
+          <input type="number" min="0" max="10" data-r="carte.position">
+        </label>
+        <label>Titre (facultatif)
+          <input type="text" data-r="carte.titre">
+        </label>
+      </div>
+      <div>
+        <h3>Images intercalaires</h3>
+        <label>Première image en page n°
+          <input type="number" min="2" data-r="intercalaires.premierePage">
+        </label>
+        <label>Puis toutes les N pages
+          <input type="number" min="0" data-r="intercalaires.intervalle">
+        </label>
+        <p class="aide">La couverture compte comme page 1. Les images tournent si elles sont plusieurs.</p>
+      </div>
+      <div>
+        <h3>Tableau récapitulatif</h3>
+        <label class="case"><input type="checkbox" data-r="tableau.afficher"> Afficher le tableau en fin de programme</label>
+        <label>Titre (facultatif)
+          <input type="text" data-r="tableau.titre">
+        </label>
+        <label>Ordre
+          <select data-r="tableau.tri">
+            <option value="commune">Par commune</option>
+            <option value="date">Chronologique</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <h3>Impression et site</h3>
+        <label class="case"><input type="checkbox" data-r="completerMultipleDe4"> Compléter à un multiple de 4 pages (livret)</label>
+        <label class="case"><input type="checkbox" data-r="kirby.generer"> Générer l'export Kirby (zip)</label>
+      </div>
+    </div>
+  </section>
+
+  <section id="resultat">
+    <h2>Programme généré</h2>
+    <div id="resume"></div>
+    <iframe id="apercu" title="Aperçu du programme"></iframe>
+  </section>
+
+  </form>
+</main>
+
+<div class="barre">
+  <span id="etat"></span>
+  <button type="button" class="btn second" id="defauts">Réglages par défaut</button>
+  <button type="button" class="btn second" id="enregistrer">Enregistrer les réglages</button>
+  <button type="button" class="btn second" id="telecharger" title="Pour GitHub : à déposer dans entree/reglages.json">Télécharger reglages.json</button>
+  <button type="submit" form="form" class="btn principal" id="generer">Générer le programme</button>
+</div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const etat = $('#etat');
+let R = null;
+
+const lire = (obj, chemin) => chemin.split('.').reduce((o, k) => (o ? o[k] : undefined), obj);
+const ecrire = (obj, chemin, v) => {
+  const ks = chemin.split('.'); const der = ks.pop();
+  ks.reduce((o, k) => (o[k] = o[k] || {}), obj)[der] = v;
+};
+
+// Champs couleur générés à partir des listes « clé:libellé »
+document.querySelectorAll('[data-couleurs]').forEach((box) => {
+  box.dataset.couleurs.split('|').forEach((def) => {
+    const [cle, lib] = def.split(':');
+    const l = document.createElement('label');
+    l.className = 'couleur';
+    l.innerHTML = `<input type="color" data-r="couleurs.${cle}"><input type="text" data-hex="couleurs.${cle}" maxlength="7"><span>${lib}</span>`;
+    box.appendChild(l);
+  });
+});
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.type === 'color') { const h = $(`[data-hex="${t.dataset.r}"]`); if (h) h.value = t.value; }
+  if (t.dataset.hex && /^#[0-9a-f]{6}$/i.test(t.value)) { $(`[data-r="${t.dataset.hex}"]`).value = t.value; }
+  if (t.closest('.intro')) majApercusIntro();
+});
+
+function remplir() {
+  document.querySelectorAll('[data-r]').forEach((el) => {
+    const v = lire(R, el.dataset.r);
+    if (el.type === 'checkbox') el.checked = !!v;
+    else el.value = v === undefined || v === null ? '' : v;
+    if (el.type === 'color') { const h = $(`[data-hex="${el.dataset.r}"]`); if (h) h.value = el.value; }
+  });
+  dessinerIntros();
+}
+
+function collecter() {
+  const out = JSON.parse(JSON.stringify(R));
+  document.querySelectorAll('[data-r]').forEach((el) => {
+    let v = el.type === 'checkbox' ? el.checked : el.value;
+    if (el.type === 'number') {
+      if (el.value === '' || isNaN(Number(el.value))) return; // champ vide : on garde la valeur par défaut
+      v = Number(el.value);
+    }
+    ecrire(out, el.dataset.r, v);
+  });
+  out.pagesIntro = [...document.querySelectorAll('.intro')].map((b) => ({
+    texte: $('textarea', b).value,
+    fond: $('[name=fond]', b).value,
+    couleurTexte: $('[name=couleurTexte]', b).value,
+    pageVideApres: $('[name=pageVideApres]', b).checked,
+  }));
+  return out;
+}
+
+function dessinerIntros() {
+  const box = $('#intros');
+  box.innerHTML = '';
+  (R.pagesIntro || []).forEach((p, i) => ajouterIntro(p, i));
+  majApercusIntro();
+}
+function ajouterIntro(p) {
+  const b = document.createElement('div');
+  b.className = 'intro';
+  b.innerHTML = `
+    <label>Texte de la page <span class="num"></span><textarea></textarea></label>
+    <div class="cote">
+      <label class="couleur"><input type="color" name="fond"><span>Fond</span></label>
+      <label class="couleur"><input type="color" name="couleurTexte"><span>Texte</span></label>
+      <label class="case"><input type="checkbox" name="pageVideApres"> Page de couleur vide après</label>
+      <div class="apercu"></div>
+      <button type="button" class="btn second petit suppr">Supprimer</button>
+    </div>`;
+  $('textarea', b).value = p.texte || '';
+  $('[name=fond]', b).value = p.fond || '#47b654';
+  $('[name=couleurTexte]', b).value = p.couleurTexte || '#ffffff';
+  $('[name=pageVideApres]', b).checked = !!p.pageVideApres;
+  $('.suppr', b).onclick = () => { b.remove(); majApercusIntro(); };
+  $('#intros').appendChild(b);
+}
+function majApercusIntro() {
+  document.querySelectorAll('.intro').forEach((b, i) => {
+    $('.num', b).textContent = 'n° ' + (i + 1);
+    const a = $('.apercu', b);
+    a.style.background = $('[name=fond]', b).value;
+    a.style.color = $('[name=couleurTexte]', b).value;
+    a.textContent = $('textarea', b).value.slice(0, 120) + '…';
+  });
+}
+$('#ajoutIntro').onclick = () => { ajouterIntro({ texte: '', fond: '#ffde1e', couleurTexte: '#47b654' }); majApercusIntro(); };
+
+async function chargerReglages(url) {
+  R = await (await fetch(url)).json();
+  remplir();
+}
+
+// Réglages à déposer dans entree/reglages.json du dépôt GitHub
+$('#telecharger').onclick = () => {
+  const blob = new Blob([JSON.stringify(collecter(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'reglages.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  etat.textContent = 'reglages.json téléchargé : déposez-le dans le dossier entree/ du dépôt.';
+};
+
+$('#enregistrer').onclick = async () => {
+  R = collecter();
+  const r = await fetch('/api/reglages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(R) });
+  etat.textContent = r.ok ? 'Réglages enregistrés.' : "Échec de l'enregistrement.";
+};
+$('#defauts').onclick = async () => {
+  if (!confirm('Revenir aux réglages par défaut (charte 2026) ? Les réglages affichés seront remplacés.')) return;
+  await chargerReglages('/api/reglages/defauts');
+  etat.textContent = 'Réglages par défaut chargés (pensez à enregistrer).';
+};
+
+const fmt = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '?';
+const echapper = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Analyse automatique dès qu'un export est choisi
+async function analyser() {
+  const f = $('[name=export]').files[0];
+  const box = $('#analyse');
+  if (!f) { box.style.display = 'none'; return; }
+  const fd = new FormData();
+  fd.append('export', f);
+  fd.append('reglages', JSON.stringify(collecter()));
+  box.style.display = 'block';
+  box.className = 'analyse';
+  box.textContent = 'Lecture du fichier…';
+  const r = await fetch('/api/analyser', { method: 'POST', body: fd });
+  const j = await r.json();
+  if (!r.ok) { box.className = 'analyse erreur'; box.textContent = j.erreur; return; }
+  let h = `<strong>${j.stats.nbAnimations} animations</strong> dans <strong>${j.stats.nbBibliotheques} bibliothèques</strong>, du ${fmt(j.stats.dateDebut)} au ${fmt(j.stats.dateFin)} <span style="color:var(--gris)">(${j.total} lignes dans le fichier)</span>`;
+  if (j.sansDate.length) h += `<ul><li>Sans date : ${j.sansDate.map(echapper).join(' ; ')}</li></ul>`;
+  if (j.horsCarte.length) h += `<ul><li class="avert">Absentes du fond de carte : ${j.horsCarte.map(echapper).join(', ')}</li></ul>`;
+  box.innerHTML = h;
+}
+$('[name=export]').addEventListener('change', analyser);
+['periodeDebut', 'periodeFin', 'inclureSansDate', 'idsExclus'].forEach((k) =>
+  $(`[data-r="${k}"]`).addEventListener('change', analyser));
+
+$('#form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('#generer');
+  btn.disabled = true;
+  etat.textContent = 'Génération en cours…';
+  try {
+    const fd = new FormData();
+    ['export', 'couverture', 'quatrieme'].forEach((n) => { const f = $(`[name=${n}]`).files[0]; if (f) fd.append(n, f); });
+    [...$('[name=intercalaires]').files].forEach((f) => fd.append('intercalaires', f));
+    fd.append('reglages', JSON.stringify(collecter()));
+    const r = await fetch('/api/generer', { method: 'POST', body: fd });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.erreur || 'Erreur inconnue');
+    let h = `<p>${j.stats.nbAnimations} animations, ${j.stats.nbBibliotheques} bibliothèques, <strong>${j.pages} pages</strong>.</p><p class="liens"><a href="${j.pdf}" download>Télécharger le PDF</a>`;
+    if (j.zip) h += `<a href="${j.zip}" download>Télécharger l'export Kirby</a>`;
+    h += '</p>';
+    if (j.avertissements.length) h += '<ul>' + j.avertissements.map((w) => `<li class="avert">${echapper(w)}</li>`).join('') + '</ul>';
+    $('#resume').innerHTML = h;
+    $('#apercu').src = j.pdf;
+    $('#resultat').style.display = 'block';
+    $('#resultat').scrollIntoView({ behavior: 'smooth' });
+    etat.textContent = 'Programme généré.';
+  } catch (err) {
+    etat.textContent = 'Erreur : ' + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+chargerReglages('/api/reglages');
+</script>
+</body>
+</html>
