@@ -221,6 +221,7 @@
   <button type="submit" form="form" class="btn principal" id="generer">Générer le programme</button>
 </div>
 
+<script src="/outils/anonymiser.js"></script>
 <script>
 const $ = (s, el = document) => el.querySelector(s);
 const etat = $('#etat');
@@ -367,19 +368,33 @@ $('[name=export]').addEventListener('change', analyser);
 $('[name=export]').addEventListener('change', () => {
   $('#blocAnonyme').style.display = $('[name=export]').files[0] ? 'block' : 'none';
 });
+// Anonymisation faite dans le navigateur : le fichier n'est pas envoyé au serveur
 $('#anonymiser').onclick = async () => {
   const f = $('[name=export]').files[0];
   if (!f) return;
-  const fd = new FormData();
-  fd.append('export', f);
-  const r = await fetch('/api/anonymiser', { method: 'POST', body: fd });
-  if (!r.ok) { etat.textContent = 'Erreur : ' + (await r.json()).erreur; return; }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(await r.blob());
-  a.download = 'export.tsv';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  etat.textContent = 'export.tsv anonymisé téléchargé : déposez-le dans entree/ sur GitHub.';
+  try {
+    let rows;
+    if (/\.(xlsx|xls)$/i.test(f.name)) {
+      if (!window.XLSX) await new Promise((ok, ko) => {
+        const s = document.createElement('script');
+        s.src = '/outils/vendor/xlsx.full.min.js'; s.onload = ok; s.onerror = ko;
+        document.head.appendChild(s);
+      });
+      const wb = XLSX.read(await f.arrayBuffer(), { type: 'array', raw: true });
+      rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
+    } else {
+      rows = QDNBAnonymiser.lireTexte(await f.text(), /\.tsv$/i.test(f.name) ? '\t' : null);
+    }
+    const r = QDNBAnonymiser.anonymiser(rows);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([r.tsv], { type: 'text/tab-separated-values;charset=utf-8' }));
+    a.download = 'export.tsv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    etat.textContent = `export.tsv anonymisé (${r.lignes} lignes) : déposez-le dans entree/ sur GitHub.`;
+  } catch (e) {
+    etat.textContent = 'Erreur : ' + e.message;
+  }
 };
 ['periodeDebut', 'periodeFin', 'inclureSansDate', 'idsExclus'].forEach((k) =>
   $(`[data-r="${k}"]`).addEventListener('change', analyser));

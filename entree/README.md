@@ -2,7 +2,7 @@
 
 Déposez ici les fichiers suivants, puis validez sur `main` : le programme est régénéré automatiquement.
 
-> ⚠️ **Dépôt public : jamais l'export brut du formulaire** (noms, e-mails, adresses IP). Produisez `export.tsv` avec le bouton « Export anonymisé pour GitHub » du formulaire local, ou avec `node anonymiser.js export-brut.tsv entree/export.tsv`. Le workflow échoue s'il détecte un export brut.
+> ⚠️ **Dépôt public : jamais l'export brut du formulaire** (noms, e-mails, adresses IP). Produisez `export.tsv` avec la page d'anonymisation du dépôt (GitHub Pages, le fichier reste sur votre ordinateur), le bouton « Export anonymisé pour GitHub » du formulaire local, ou `node anonymiser.js export-brut.tsv entree/export.tsv`. Le workflow échoue s'il détecte un export brut.
 
 | Fichier | Obligatoire | Contenu |
 |---|---|---|

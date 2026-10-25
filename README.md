@@ -15,12 +15,15 @@ Deux façons de l'utiliser : **sur GitHub**, sans rien installer, ou **en local*
 
 ### Préparer l'export anonymisé
 
-Au choix :
+L'anonymisation se fait **dans le navigateur** : le fichier n'est envoyé nulle part. La page interdit d'ailleurs toute connexion réseau.
 
-- **avec le formulaire local** : choisissez l'export, puis cliquez sur **Export anonymisé pour GitHub** ;
-- **en ligne de commande** : `node anonymiser.js export-brut.tsv entree/export.tsv`.
+- **Page en ligne (recommandé, rien à installer)** : `https://VOTRE-COMPTE.github.io/NOM-DU-DEPOT/`. Glissez l'export brut, téléchargez `export.tsv`. La page propose aussi un lien direct vers le dossier `entree/` du dépôt.
+- **Formulaire local** : bouton **Export anonymisé pour GitHub** (même code, exécuté dans le navigateur).
+- **En ligne de commande** : `node anonymiser.js export-brut.tsv entree/export.tsv`.
 
-Colonnes supprimées : responsable, e-mail, adresse IP, identifiants de compte, logos et heure de saisie. Le PDF obtenu est strictement identique.
+Colonnes supprimées : responsable, e-mail, adresse IP, identifiants de compte, logos, heure de saisie. Le PDF obtenu est strictement identique.
+
+**Activer la page (une seule fois)** : sur GitHub, *Settings → Pages → Build and deployment*. Choisissez *Source : Deploy from a branch*, puis *Branch : `main`* et le dossier *`/docs`*, et enregistrez. L'adresse s'affiche après une minute environ.
 
 ### Générer le programme
 
@@ -115,7 +118,8 @@ node cli.js export.tsv --couverture couv.pdf --intercalaire photo.jpg --reglages
 | `entree/` | fichiers d'entrée utilisés par GitHub Actions |
 | `.github/workflows/programme.yml` | workflow de génération |
 | `cli.js` | génération en ligne de commande |
-| `anonymiser.js`, `lib/anonymiser.js` | export réduit aux colonnes publiques |
+| `docs/` | page d'anonymisation publiée sur GitHub Pages (code partagé par tous les outils) |
+| `anonymiser.js` | anonymisation en ligne de commande |
 | `server.js`, `public/index.html` | formulaire web local |
 | `lib/data.js` | lecture et nettoyage de l'export |
 | `lib/pdf.js` | mise en page du programme |
