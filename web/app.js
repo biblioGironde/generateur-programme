@@ -2,7 +2,6 @@
 // Même code que la ligne de commande (dossier lib/), assemblé par esbuild (npm run build).
 const { animationsDepuisLignes, parseDate } = require('../lib/data');
 const { genererPDF } = require('../lib/pdf');
-const { zipKirby } = require('../lib/kirby');
 const { trouverCommune } = require('../lib/carte');
 const anonymisation = require('../lib/anonymiser');
 const reglages = require('../lib/reglages');
@@ -299,10 +298,6 @@ $('#form').addEventListener('submit', async (e) => {
     const urlPdf = lienBlob(res.buffer, 'application/pdf');
     let h = `<p>${s.stats.nbAnimations} animations, ${s.stats.nbBibliotheques} bibliothèques, <strong>${res.pages} pages</strong>.</p>`;
     h += `<div class="actions"><a class="btn principal" href="${urlPdf}" download="${nom}.pdf">Télécharger le PDF</a>`;
-    if (R.kirby && R.kirby.generer) {
-      const urlZip = lienBlob(zipKirby(s.animations, null), 'application/zip');
-      h += `<a class="btn second" href="${urlZip}" download="${nom}-agenda-kirby.zip">Télécharger l'export Kirby</a>`;
-    }
     h += '</div>';
     const avert = [...res.avertissements];
     if (s.horsCarte.length) avert.push('Absentes du fond de carte : ' + s.horsCarte.join(', '));
