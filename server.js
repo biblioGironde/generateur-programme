@@ -8,6 +8,7 @@ const { chargerAnimations, parseDate } = require('./lib/data');
 const { genererPDF } = require('./lib/pdf');
 const { trouverCommune } = require('./lib/carte');
 const { exporterKirby, zipper } = require('./lib/kirby');
+const { anonymiser } = require('./lib/anonymiser');
 const reglages = require('./lib/reglages');
 
 const app = express();
@@ -64,6 +65,22 @@ function analyser(fichier, R) {
 const nettoyer = (req) => {
   for (const liste of Object.values(req.files || {})) for (const f of liste) fs.remove(f.path).catch(() => {});
 };
+
+// Export réduit aux colonnes utiles, sans données personnelles (pour le dépôt GitHub public)
+app.post('/api/anonymiser', champs, (req, res) => {
+  try {
+    const f = req.files && req.files.export && req.files.export[0];
+    if (!f) return res.status(400).json({ erreur: "Aucun fichier d'export reçu." });
+    const { tsv } = anonymiser(f.path, f.originalname);
+    res.set('Content-Type', 'text/tab-separated-values; charset=utf-8');
+    res.set('Content-Disposition', 'attachment; filename="export.tsv"');
+    res.send(tsv);
+  } catch (e) {
+    res.status(400).json({ erreur: e.message });
+  } finally {
+    nettoyer(req);
+  }
+});
 
 // Aperçu des données avant génération
 app.post('/api/analyser', champs, (req, res) => {

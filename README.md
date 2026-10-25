@@ -11,22 +11,39 @@ Deux façons de l'utiliser : **sur GitHub**, sans rien installer, ou **en local*
 
 ## Sur GitHub (GitHub Actions)
 
-> ⚠️ **Dépôt privé obligatoire.** L'export du formulaire contient les noms, adresses e-mail et adresses IP des personnes qui ont saisi les animations.
+> ⚠️ **Dépôt public : ne déposez jamais l'export brut du formulaire.** Il contient les noms, adresses e-mail et adresses IP des personnes qui ont saisi les animations. Déposez uniquement l'**export anonymisé** (voir ci-dessous) : il ne garde que les informations publiées dans le programme. Le workflow refuse de tourner s'il détecte un export brut.
+
+### Préparer l'export anonymisé
+
+Au choix :
+
+- **avec le formulaire local** : choisissez l'export, puis cliquez sur **Export anonymisé pour GitHub** ;
+- **en ligne de commande** : `node anonymiser.js export-brut.tsv entree/export.tsv`.
+
+Colonnes supprimées : responsable, e-mail, adresse IP, identifiants de compte, logos et heure de saisie. Le PDF obtenu est strictement identique.
 
 ### Générer le programme
 
 1. Dans le dossier `entree/` du dépôt, déposez (bouton **Add file → Upload files**) :
-   - l'export du formulaire, nommé **`export.tsv`** (ou `export.xlsx`, `export.csv`) ;
+   - l'export **anonymisé**, nommé **`export.tsv`** ;
    - **`couverture.jpg`**, `.png` ou `.pdf` ;
    - facultatif : **`quatrieme.jpg`** / `.pdf` (4e de couverture) ;
    - facultatif : des photos dans **`entree/intercalaires/`** ;
    - facultatif : **`reglages.json`** (couleurs, textes…, voir plus bas).
 2. Validez (**Commit changes**) sur la branche `main` : le workflow démarre tout seul.
 3. Après environ une minute, le PDF et le zip Kirby sont disponibles :
-   - dans la **release « programme »** (colonne de droite de la page du dépôt), toujours à la même adresse ;
+   - dans la **release « programme »** (colonne de droite de la page du dépôt), à une adresse fixe que vous pouvez partager ;
    - et dans l'onglet **Actions**, sur l'exécution, rubrique *Artifacts* (conservés 30 jours).
 
 Le résumé de l'exécution indique le nombre d'animations, la période retenue, les animations sans date et les communes introuvables sur la carte.
+
+### Si un export brut a été poussé par erreur
+
+Le supprimer dans un nouveau commit ne suffit pas : il reste lisible dans l'historique.
+
+- **Dépôt récent, sans enjeu d'historique :** le plus sûr est de supprimer le dépôt sur GitHub (*Settings → Delete this repository*), puis de le recréer et d'y pousser une copie propre.
+- **Sinon :** réécrivez l'historique avec [git filter-repo](https://github.com/newren/git-filter-repo) (`git filter-repo --invert-paths --path entree/NOM_DU_FICHIER`), puis faites un `git push --force`.
+- **Dans tous les cas :** demandez au support GitHub de purger les vues en cache.
 
 ### Relancer avec d'autres options
 
@@ -98,6 +115,7 @@ node cli.js export.tsv --couverture couv.pdf --intercalaire photo.jpg --reglages
 | `entree/` | fichiers d'entrée utilisés par GitHub Actions |
 | `.github/workflows/programme.yml` | workflow de génération |
 | `cli.js` | génération en ligne de commande |
+| `anonymiser.js`, `lib/anonymiser.js` | export réduit aux colonnes publiques |
 | `server.js`, `public/index.html` | formulaire web local |
 | `lib/data.js` | lecture et nettoyage de l'export |
 | `lib/pdf.js` | mise en page du programme |

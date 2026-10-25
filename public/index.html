@@ -86,6 +86,10 @@
       </label>
     </div>
     <div id="analyse" class="analyse"></div>
+    <p class="aide" id="blocAnonyme" style="display:none">
+      <button type="button" class="btn second petit" id="anonymiser">Export anonymisé pour GitHub</button>
+      Version sans nom, e-mail ni adresse IP des personnes qui ont saisi : c'est elle qu'il faut déposer dans <code>entree/export.tsv</code>.
+    </p>
   </section>
 
   <section>
@@ -360,6 +364,23 @@ async function analyser() {
   box.innerHTML = h;
 }
 $('[name=export]').addEventListener('change', analyser);
+$('[name=export]').addEventListener('change', () => {
+  $('#blocAnonyme').style.display = $('[name=export]').files[0] ? 'block' : 'none';
+});
+$('#anonymiser').onclick = async () => {
+  const f = $('[name=export]').files[0];
+  if (!f) return;
+  const fd = new FormData();
+  fd.append('export', f);
+  const r = await fetch('/api/anonymiser', { method: 'POST', body: fd });
+  if (!r.ok) { etat.textContent = 'Erreur : ' + (await r.json()).erreur; return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(await r.blob());
+  a.download = 'export.tsv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  etat.textContent = 'export.tsv anonymisé téléchargé : déposez-le dans entree/ sur GitHub.';
+};
 ['periodeDebut', 'periodeFin', 'inclureSansDate', 'idsExclus'].forEach((k) =>
   $(`[data-r="${k}"]`).addEventListener('change', analyser));
 
