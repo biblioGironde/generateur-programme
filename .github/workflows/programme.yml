@@ -52,14 +52,28 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Pas d'export déposé : rien à générer, on s'arrête sans erreur
+      - name: Chercher l'export
+        id: export
+        run: |
+          if ls entree/ | grep -qiE '\.(tsv|csv|txt|xlsx|xls)$'; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Aucun export dans entree/ : rien à générer. Déposez export.tsv (anonymisé) pour lancer la génération."
+          fi
+
       - uses: actions/setup-node@v6
+        if: steps.export.outputs.present == 'true'
         with:
           node-version: 22
           cache: npm
 
-      - run: npm ci --omit=dev
+      - if: steps.export.outputs.present == 'true'
+        run: npm ci --omit=dev
 
       - name: Générer le PDF
+        if: steps.export.outputs.present == 'true'
         env:
           QDNB_PERIODE_DEBUT: ${{ inputs.periode_debut }}
           QDNB_PERIODE_FIN: ${{ inputs.periode_fin }}
@@ -75,6 +89,7 @@ jobs:
           fi
 
       - name: Joindre les fichiers à l'exécution
+        if: steps.export.outputs.present == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: programme-qdnb
@@ -83,6 +98,7 @@ jobs:
 
       # Release unique « programme » : toujours la dernière version, à la même adresse
       - name: Publier dans la release « programme »
+        if: steps.export.outputs.present == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
