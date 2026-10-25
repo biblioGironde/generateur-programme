@@ -1,6 +1,7 @@
 # Publie l'application (générateur dans le navigateur) sur GitHub Pages
 # à chaque modification du code. Réglage à faire une fois :
-# Settings → Pages → Build and deployment → Source : « GitHub Actions ».
+# Settings → Pages → Build and deployment → Source : « GitHub Actions » (fait le 25/10/2026).
+# Adresse : https://bibliogironde.github.io/generateur-programme/
 name: Publier l'application
 
 on:
