@@ -2,23 +2,24 @@
   "name": "generateur-programme-qdnb",
   "version": "1.0.0",
   "description": "Génère le programme PDF de la Quinzaine du numérique en bibliothèque à partir de l'export du formulaire",
-  "main": "server.js",
+  "main": "cli.js",
   "scripts": {
-    "start": "node server.js",
+    "build": "node scripts/build.js",
+    "local": "node scripts/build.js && node scripts/serve.js",
     "cli": "node cli.js"
   },
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "archiver": "^7.0.1",
-    "express": "^5.3.0",
-    "fs-extra": "^11.4.1",
-    "multer": "^2.5.0",
+    "fflate": "^0.8.3",
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.20.2",
     "xlsx": "^0.18.5"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }

@@ -1,0 +1,53 @@
+# Publie l'application (générateur dans le navigateur) sur GitHub Pages
+# à chaque modification du code. Réglage à faire une fois :
+# Settings → Pages → Build and deployment → Source : « GitHub Actions ».
+name: Publier l'application
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'lib/**'
+      - 'fonts/**'
+      - 'data/**'
+      - 'scripts/**'
+      - 'package*.json'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  construire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  publier:
+    needs: construire
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - id: deploiement
+        uses: actions/deploy-pages@v4

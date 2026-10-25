@@ -13,11 +13,11 @@
 //   QDNB_PERIODE_DEBUT, QDNB_PERIODE_FIN (AAAA-MM-JJ), QDNB_IDS_EXCLUS, QDNB_TRI (date|commune)
 const fs = require('fs');
 const path = require('path');
-const { chargerAnimations, parseDate } = require('./lib/data');
+const { parseDate } = require('./lib/data');
 const { genererPDF } = require('./lib/pdf');
-const { exporterKirby, zipper } = require('./lib/kirby');
+const { zipKirby } = require('./lib/kirby');
 const { trouverCommune } = require('./lib/carte');
-const { colonnesSensibles } = require('./lib/anonymiser');
+const { chargerAnimations, colonnesSensiblesFichier, lireFichier, envPdf } = require('./lib/node');
 const reglages = require('./lib/reglages');
 
 const EXT_EXPORT = /\.(tsv|csv|txt|xlsx|xls)$/i;
@@ -70,8 +70,7 @@ function lireDossier(o) {
 }
 
 function chargerReglages(o) {
-  let R = reglages.charger();
-  if (o.reglages) R = reglages.fusion(R, JSON.parse(fs.readFileSync(o.reglages, 'utf8')));
+  const R = reglages.avec(o.reglages ? JSON.parse(fs.readFileSync(o.reglages, 'utf8')) : {});
   const env = process.env;
   if (env.QDNB_PERIODE_DEBUT) R.periodeDebut = env.QDNB_PERIODE_DEBUT.trim();
   if (env.QDNB_PERIODE_FIN) R.periodeFin = env.QDNB_PERIODE_FIN.trim();
@@ -80,7 +79,6 @@ function chargerReglages(o) {
   return R;
 }
 
-const fichier = (p) => (p ? { path: p, originalname: path.basename(p), mimetype: /\.pdf$/i.test(p) ? 'application/pdf' : 'image' } : null);
 const fmt = (d) => (d ? d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '?');
 
 async function main() {
@@ -96,14 +94,14 @@ async function main() {
 
   // Dépôt public : on refuse un export qui contient encore des données personnelles
   if (process.env.GITHUB_ACTIONS === 'true' || o.verifierAnonyme) {
-    const sensibles = colonnesSensibles(exp, exp);
+    const sensibles = colonnesSensiblesFichier(exp);
     if (sensibles.length) {
       throw new Error(`L'export « ${path.basename(exp)} » contient des données personnelles (${sensibles.join(', ')}). ` +
         "Supprimez-le du dépôt ET de son historique, puis déposez la version produite par « node anonymiser.js » " +
-        "ou par le bouton « Export anonymisé pour GitHub » du formulaire.");
+        "ou par le bouton « Télécharger l’export anonymisé » de l’application.");
     }
   }
-  const { animations, dateDebut, dateFin, total } = chargerAnimations(exp, exp, {
+  const { animations, dateDebut, dateFin, total } = chargerAnimations(exp, {
     dateDebut: parseDate(R.periodeDebut), dateFin: parseDate(R.periodeFin),
     inclureSansDate: R.inclureSansDate, idsExclus: R.idsExclus,
   });
@@ -112,19 +110,18 @@ async function main() {
   const stats = { nbAnimations: animations.length, nbBibliotheques: communes.length, dateDebut, dateFin };
 
   const res = await genererPDF(animations, R, {
-    couverture: fichier(o.couverture), quatrieme: fichier(o.quatrieme),
-    intercalaires: o.intercalaires.map(fichier),
-  }, stats);
+    couverture: lireFichier(o.couverture), quatrieme: lireFichier(o.quatrieme),
+    intercalaires: o.intercalaires.map(lireFichier),
+  }, stats, envPdf());
   const sortie = o.sortie || `${R.nomFichier || 'programme-qdnb'}.pdf`;
   fs.mkdirSync(path.dirname(path.resolve(sortie)), { recursive: true });
   fs.writeFileSync(sortie, res.buffer);
 
   let zip = null;
   if (o.kirby) {
-    const tmp = path.join(path.dirname(path.resolve(o.kirby)), '.kirby-tmp');
-    await exporterKirby(animations, tmp, path.join(__dirname, 'working-files', 'page-qdnb-programmation.txt'));
-    await zipper(tmp, o.kirby);
-    fs.rmSync(tmp, { recursive: true, force: true });
+    const gabarit = path.join(__dirname, 'working-files', 'page-qdnb-programmation.txt');
+    fs.mkdirSync(path.dirname(path.resolve(o.kirby)), { recursive: true });
+    fs.writeFileSync(o.kirby, zipKirby(animations, fs.existsSync(gabarit) ? fs.readFileSync(gabarit, 'utf8') : null));
     zip = o.kirby;
   }
 

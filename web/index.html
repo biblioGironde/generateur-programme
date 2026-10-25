@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Aucune connexion réseau autorisée : les fichiers ne peuvent pas quitter l'ordinateur -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Générateur de programme · Quinzaine du numérique</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header>
+  <div class="largeur">
+    <h1>Programme de la Quinzaine du numérique</h1>
+    <p>Export du formulaire → programme PDF A5 et export Kirby, entièrement dans votre navigateur</p>
+  </div>
+</header>
+
+<main class="largeur">
+  <div class="garantie">
+    <span aria-hidden="true">🔒</span>
+    <div><strong>Vos fichiers restent sur votre ordinateur.</strong>
+      Tout est calculé par votre navigateur : cette page n'a aucun droit d'envoyer des données.
+      Vous pouvez donc utiliser directement l'export brut du formulaire.</div>
+  </div>
+
+  <form id="form">
+  <section>
+    <h2>Fichiers</h2>
+    <div class="grille">
+      <label>Export du formulaire (TSV, CSV ou Excel) *
+        <input type="file" name="export" accept=".tsv,.csv,.txt,.xlsx,.xls" required>
+      </label>
+      <label>Couverture (JPG, PNG ou PDF)
+        <input type="file" name="couverture" accept=".jpg,.jpeg,.png,.pdf">
+      </label>
+      <label>4<sup>e</sup> de couverture (facultatif)
+        <input type="file" name="quatrieme" accept=".jpg,.jpeg,.png,.pdf">
+      </label>
+      <label>Images intercalaires (JPG ou PNG, plusieurs possibles)
+        <input type="file" name="intercalaires" accept=".jpg,.jpeg,.png" multiple>
+      </label>
+    </div>
+    <div id="analyse" class="analyse"></div>
+  </section>
+
+  <section>
+    <h2>Sélection et ordre des animations</h2>
+    <div class="grille">
+      <label>Période : du <input type="date" data-r="periodeDebut"></label>
+      <label>au <input type="date" data-r="periodeFin"></label>
+      <label>Ordre des fiches
+        <select data-r="tri">
+          <option value="date">Chronologique</option>
+          <option value="commune">Par commune</option>
+        </select>
+      </label>
+      <label>Numéros de saisie à exclure
+        <input type="text" data-r="idsExclus" placeholder="ex. 12, 57, 203">
+      </label>
+      <label>Nom du fichier PDF <input type="text" data-r="nomFichier"></label>
+    </div>
+    <p class="aide">Période vide : l'édition la plus récente est détectée automatiquement.</p>
+    <label class="case"><input type="checkbox" data-r="inclureSansDate"> Inclure les animations sans date (« date à préciser »)</label>
+    <label class="case"><input type="checkbox" data-r="uneAnimationParPage"> Une seule animation par page</label>
+  </section>
+
+  <section>
+    <h2>Couleurs</h2>
+    <div class="grille">
+      <div>
+        <h3>Fiches animations</h3>
+        <div data-couleurs="date:Date et heure|infos:Durée, public, inscription|bibliotheque:Bibliothèque / commune|liens:Liens|themes:Thématiques|titre:Titre de l'animation|description:Description"></div>
+      </div>
+      <div>
+        <h3>Tableau du programme</h3>
+        <div data-couleurs="tableEnteteFond:Fond de l'en-tête|tableEnteteTexte:Texte de l'en-tête|tableLigneFond:Fond des lignes impaires|tableLigneAltFond:Fond des lignes paires|tableTexte:Texte du tableau"></div>
+      </div>
+      <div>
+        <h3>Carte</h3>
+        <div data-couleurs="carteFond:Fond de page|carteCommunes:Communes|carteContours:Contours|carteMarqueur:Bulles|carteEtiquettes:Noms des communes|carteTitre:Titre de la carte"></div>
+        <h3>Livret</h3>
+        <div data-couleurs="pagesComplement:Pages de complément"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tailles des textes (pt)</h2>
+    <div class="grille">
+      <label>Date <input type="number" step="0.5" min="8" max="30" data-r="tailles.date"></label>
+      <label>Commune <input type="number" step="0.5" min="8" max="24" data-r="tailles.commune"></label>
+      <label>Titre de l'animation <input type="number" step="0.5" min="7" max="18" data-r="tailles.titre"></label>
+      <label>Description <input type="number" step="0.25" min="5.5" max="11" data-r="tailles.description"></label>
+      <label>Infos et liens <input type="number" step="0.25" min="5.5" max="10" data-r="tailles.infos"></label>
+      <label>Tableau <input type="number" step="0.25" min="5.5" max="10" data-r="tailles.tableau"></label>
+      <label>Pages d'intro (maximum) <input type="number" step="1" min="10" max="32" data-r="tailles.intro"></label>
+      <label>Description mini pour garder 2 fiches par page <input type="number" step="0.25" min="5.5" max="10" data-r="tailleMiniDemiPage"></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pages d'introduction</h2>
+    <p class="aide">Variables calculées : <code>{nb_bibliotheques}</code> <code>{nb_animations}</code> <code>{periode}</code>. La taille du texte s'adapte pour tenir sur la page.</p>
+    <div id="intros"></div>
+    <button type="button" class="btn second petit" id="ajoutIntro">+ Ajouter une page</button>
+  </section>
+
+  <section>
+    <h2>Carte, images intercalaires, tableau</h2>
+    <div class="grille">
+      <div>
+        <h3>Carte des communes</h3>
+        <label class="case"><input type="checkbox" data-r="carte.afficher"> Afficher la carte</label>
+        <label>Placée après la page d'intro n° <input type="number" min="0" max="10" data-r="carte.position"></label>
+        <label>Titre (facultatif) <input type="text" data-r="carte.titre"></label>
+      </div>
+      <div>
+        <h3>Images intercalaires</h3>
+        <label>Première image en page n° <input type="number" min="2" data-r="intercalaires.premierePage"></label>
+        <label>Puis toutes les N pages <input type="number" min="0" data-r="intercalaires.intervalle"></label>
+        <p class="aide">La couverture compte comme page 1. Les images tournent si elles sont plusieurs.</p>
+      </div>
+      <div>
+        <h3>Tableau récapitulatif</h3>
+        <label class="case"><input type="checkbox" data-r="tableau.afficher"> Afficher le tableau en fin de programme</label>
+        <label>Titre (facultatif) <input type="text" data-r="tableau.titre"></label>
+        <label>Ordre
+          <select data-r="tableau.tri">
+            <option value="commune">Par commune</option>
+            <option value="date">Chronologique</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <h3>Impression et site</h3>
+        <label class="case"><input type="checkbox" data-r="completerMultipleDe4"> Compléter à un multiple de 4 pages (livret)</label>
+        <label class="case"><input type="checkbox" data-r="kirby.generer"> Produire aussi l'export Kirby (zip)</label>
+      </div>
+    </div>
+  </section>
+
+  <section id="resultat" hidden>
+    <h2>Programme généré</h2>
+    <div id="resume"></div>
+    <iframe id="apercu" title="Aperçu du programme"></iframe>
+  </section>
+
+  <section>
+    <h2>Réglages</h2>
+    <p class="aide">Vos réglages sont mémorisés dans ce navigateur. Pour les partager ou les retrouver sur un autre poste, exportez-les en <code>reglages.json</code> (c'est aussi ce fichier que lit la génération automatique sur GitHub, dans <code>entree/</code>).</p>
+    <div class="actions">
+      <button type="button" class="btn second petit" id="exporterReglages">Exporter reglages.json</button>
+      <label class="btn second petit fichier-bouton">Importer reglages.json<input type="file" id="importerReglages" accept=".json,application/json"></label>
+      <button type="button" class="btn second petit" id="defauts">Revenir à la charte 2026</button>
+    </div>
+  </section>
+
+  <section id="blocGithub">
+    <h2>Génération automatique sur GitHub (facultatif)</h2>
+    <p class="aide">Pour déposer l'export dans le dépôt public, utilisez la version anonymisée : noms, e-mails et adresses IP des personnes qui ont saisi sont retirés, le programme reste identique.</p>
+    <div class="actions">
+      <button type="button" class="btn second petit" id="anonymiser" disabled>Télécharger l'export anonymisé</button>
+      <span id="lienDepot"></span>
+    </div>
+  </section>
+  </form>
+</main>
+
+<div class="barre">
+  <span id="etat"></span>
+  <button type="submit" form="form" class="btn principal" id="generer">Générer le programme</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
