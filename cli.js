@@ -2,7 +2,7 @@
 // Génération en ligne de commande, utilisée aussi par GitHub Actions.
 //
 // Mode dossier (recommandé) :
-//   node cli.js --dossier entree [--sortie sortie/programme.pdf] [--kirby sortie/agenda-kirby.zip]
+//   node cli.js --dossier entree [--sortie sortie/programme.pdf]
 //   Le dossier contient : l'export (export.tsv / .csv / .xlsx), reglages.json (facultatif),
 //   couverture.jpg|png|pdf, quatrieme.jpg|png|pdf, intercalaires/*.jpg|png (facultatifs).
 //
@@ -15,7 +15,6 @@ const fs = require('fs');
 const path = require('path');
 const { parseDate } = require('./lib/data');
 const { genererPDF } = require('./lib/pdf');
-const { zipKirby } = require('./lib/kirby');
 const { trouverCommune } = require('./lib/carte');
 const { chargerAnimations, colonnesSensiblesFichier, lireFichier, envPdf } = require('./lib/node');
 const reglages = require('./lib/reglages');
@@ -35,7 +34,6 @@ function args() {
     else if (k === '--intercalaire') o.intercalaires.push(a[++i]);
     else if (k === '--reglages') o.reglages = a[++i];
     else if (k === '--sortie') o.sortie = a[++i];
-    else if (k === '--kirby') o.kirby = a[++i];
     else if (k === '--verifier-anonyme') o.verifierAnonyme = true;
     else o.positionnels.push(k);
   }
@@ -85,7 +83,7 @@ async function main() {
   const o = args();
   if (o.dossier) lireDossier(o);
   if (!o.positionnels[0]) {
-    console.log('Usage : node cli.js --dossier entree [--sortie programme.pdf] [--kirby agenda.zip]');
+    console.log('Usage : node cli.js --dossier entree [--sortie programme.pdf]');
     console.log('    ou : node cli.js export.tsv [--couverture f] [--quatrieme f] [--intercalaire f] [--reglages f.json] [--sortie f.pdf]');
     process.exit(1);
   }
@@ -117,14 +115,6 @@ async function main() {
   fs.mkdirSync(path.dirname(path.resolve(sortie)), { recursive: true });
   fs.writeFileSync(sortie, res.buffer);
 
-  let zip = null;
-  if (o.kirby) {
-    const gabarit = path.join(__dirname, 'working-files', 'page-qdnb-programmation.txt');
-    fs.mkdirSync(path.dirname(path.resolve(o.kirby)), { recursive: true });
-    fs.writeFileSync(o.kirby, zipKirby(animations, fs.existsSync(gabarit) ? fs.readFileSync(gabarit, 'utf8') : null));
-    zip = o.kirby;
-  }
-
   const sansDate = animations.filter((a) => !a.debut).map((a) => `${a.commune} : ${a.titre} (n° ${a.id})`);
   const horsCarte = communes.filter((c) => !trouverCommune(c));
   const lignes = [
@@ -132,7 +122,6 @@ async function main() {
     `${stats.nbAnimations} animations, ${stats.nbBibliotheques} bibliothèques, du ${fmt(dateDebut)} au ${fmt(dateFin)}`,
     `PDF : ${sortie} (${res.pages} pages)`,
   ];
-  if (zip) lignes.push(`Export Kirby : ${zip}`);
   console.log(lignes.join('\n'));
   const avert = [...res.avertissements];
   if (sansDate.length) avert.push('Sans date : ' + sansDate.join(' ; '));

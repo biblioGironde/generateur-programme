@@ -33,10 +33,6 @@ on:
         type: choice
         options: ['réglage enregistré', 'date', 'commune']
         default: 'réglage enregistré'
-      kirby:
-        description: 'Produire aussi le zip pour le site Kirby'
-        type: boolean
-        default: true
 
 permissions:
   contents: write   # nécessaire pour mettre à jour la release « programme »
@@ -79,14 +75,7 @@ jobs:
           QDNB_PERIODE_FIN: ${{ inputs.periode_fin }}
           QDNB_IDS_EXCLUS: ${{ inputs.ids_exclus }}
           QDNB_TRI: ${{ inputs.tri }}
-          # Sur un push, il n'y a pas de champs : l'export Kirby est produit par défaut
-          QDNB_KIRBY: ${{ github.event_name == 'push' || inputs.kirby }}
-        run: |
-          if [ "$QDNB_KIRBY" = "true" ]; then
-            node cli.js --dossier entree --sortie sortie/programme-qdnb.pdf --kirby sortie/agenda-kirby.zip
-          else
-            node cli.js --dossier entree --sortie sortie/programme-qdnb.pdf
-          fi
+        run: node cli.js --dossier entree --sortie sortie/programme-qdnb.pdf
 
       - name: Joindre les fichiers à l'exécution
         if: steps.export.outputs.present == 'true'

@@ -1,9 +1,11 @@
 # Générateur de programme
 
-À partir de l'export du formulaire d'inscription (Framaforms : TSV, CSV ou Excel), produit :
+À partir de l'export du formulaire d'inscription (Framaforms : TSV, CSV ou Excel), produit le **programme PDF A5** :
 
-- le **programme PDF A5** : couverture, pages d'introduction colorées, carte des communes participantes, une fiche par animation (2 par page), images intercalaires, tableau récapitulatif, pages de complément pour un livret ;
-- facultativement l'**export Kirby** (un dossier par commune, un par animation), zippé, à déposer dans `content/` du site.
+- couverture et pages d'introduction colorées ;
+- carte des communes participantes ;
+- une fiche par animation (2 par page) et des images intercalaires ;
+- tableau récapitulatif et pages de complément pour un livret.
 
 ## L'application en ligne (GitHub Pages)
 
@@ -14,7 +16,7 @@ Tout se passe **dans le navigateur** : aucun serveur, rien à installer, et **au
 1. Choisir l'export : l'application affiche aussitôt le nombre d'animations retenues, la période détectée, les animations sans date et les communes absentes de la carte.
 2. Ajouter la couverture (JPG, PNG ou PDF), une 4e de couverture et des images intercalaires si besoin.
 3. Ajuster couleurs, tailles, textes d'introduction, carte, tableau.
-4. **Générer le programme** : aperçu dans la page, puis téléchargement du PDF (et du zip Kirby).
+4. **Générer le programme** : aperçu dans la page, puis téléchargement du PDF.
 
 Les réglages sont mémorisés dans le navigateur. **Exporter / Importer reglages.json** permet de les partager ou de les retrouver sur un autre poste.
 
@@ -31,10 +33,10 @@ Pour obtenir le programme dans une release GitHub sans ouvrir l'application :
 > ⚠️ **Dépôt public : ne déposez jamais l'export brut.** Utilisez le bouton **Télécharger l'export anonymisé** de l'application. Il retire le responsable, l'e-mail, l'adresse IP, les identifiants de compte, les logos et l'heure de saisie ; le programme reste identique. Le workflow refuse de tourner s'il détecte un export brut.
 
 1. Déposez dans `entree/` : `export.tsv` (anonymisé), `couverture.jpg|png|pdf`, et facultativement `quatrieme.*`, des photos dans `entree/intercalaires/` et `reglages.json` (exporté depuis l'application).
-2. Validez sur `main` : le workflow « Générer le programme » produit le PDF et le zip Kirby.
-3. Ils sont publiés dans la **release « programme »**, toujours à la même adresse, et joints à l'exécution dans l'onglet Actions pendant 30 jours.
+2. Validez sur `main` : le workflow « Générer le programme » produit le PDF.
+3. Il est publié dans la **release « programme »**, toujours à la même adresse, et joint à l'exécution dans l'onglet Actions pendant 30 jours.
 
-**Actions → Générer le programme → Run workflow** permet de relancer en changeant la période, les numéros exclus, l'ordre des fiches et l'export Kirby.
+**Actions → Générer le programme → Run workflow** permet de relancer en changeant la période, les numéros exclus et l'ordre des fiches.
 
 ### Si un export brut a été poussé par erreur
 
@@ -48,7 +50,7 @@ Le supprimer dans un nouveau commit ne suffit pas : il reste lisible dans l'hist
 ```bash
 npm install
 npm run local            # http://localhost:8100 (même application, servie depuis votre poste)
-node cli.js --dossier entree --sortie sortie/programme.pdf --kirby sortie/agenda-kirby.zip
+node cli.js --dossier entree --sortie sortie/programme.pdf
 node anonymiser.js export-brut.tsv entree/export.tsv
 ```
 
@@ -84,7 +86,6 @@ Le même code (`lib/`) sert au navigateur et à Node : le PDF est identique dans
 | `lib/data.js` | lecture et nettoyage des animations |
 | `lib/pdf.js` | mise en page du programme |
 | `lib/carte.js` | carte vectorielle des communes |
-| `lib/kirby.js` | export Kirby (zip) |
 | `lib/anonymiser.js` | export réduit aux colonnes publiques |
 | `lib/reglages.js` | réglages par défaut (charte 2026) |
 | `lib/node.js` | lecture des fichiers sur disque (ligne de commande) |
@@ -95,4 +96,4 @@ Le même code (`lib/`) sert au navigateur et à Node : le PDF est identique dans
 | `fonts/` | Darker Grotesque (licence SIL OFL, voir `fonts/OFL.txt`) |
 | `data/communes-gironde.json` | contours des communes ([france-geojson](https://github.com/gregoiredavid/france-geojson), données IGN/Etalab) |
 
-Bibliothèques : [pdfkit](https://pdfkit.org), [pdf-lib](https://pdf-lib.js.org), [SheetJS](https://sheetjs.com), [fflate](https://github.com/101arrowz/fflate). Leurs licences sont copiées dans `_site/vendor/` à la construction.
+Bibliothèques : [pdfkit](https://pdfkit.org), [pdf-lib](https://pdf-lib.js.org), [SheetJS](https://sheetjs.com). Leurs licences sont copiées dans `_site/vendor/` à la construction.

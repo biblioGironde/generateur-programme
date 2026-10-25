@@ -71,8 +71,5 @@
     "titre": "",
     "tri": "commune"
   },
-  "completerMultipleDe4": true,
-  "kirby": {
-    "generer": false
-  }
+  "completerMultipleDe4": true
 }
