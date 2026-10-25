@@ -17,6 +17,7 @@ const { chargerAnimations, parseDate } = require('./lib/data');
 const { genererPDF } = require('./lib/pdf');
 const { exporterKirby, zipper } = require('./lib/kirby');
 const { trouverCommune } = require('./lib/carte');
+const { colonnesSensibles } = require('./lib/anonymiser');
 const reglages = require('./lib/reglages');
 
 const EXT_EXPORT = /\.(tsv|csv|txt|xlsx|xls)$/i;
@@ -35,6 +36,7 @@ function args() {
     else if (k === '--reglages') o.reglages = a[++i];
     else if (k === '--sortie') o.sortie = a[++i];
     else if (k === '--kirby') o.kirby = a[++i];
+    else if (k === '--verifier-anonyme') o.verifierAnonyme = true;
     else o.positionnels.push(k);
   }
   return o;
@@ -91,6 +93,16 @@ async function main() {
   }
   const R = chargerReglages(o);
   const exp = o.positionnels[0];
+
+  // Dépôt public : on refuse un export qui contient encore des données personnelles
+  if (process.env.GITHUB_ACTIONS === 'true' || o.verifierAnonyme) {
+    const sensibles = colonnesSensibles(exp, exp);
+    if (sensibles.length) {
+      throw new Error(`L'export « ${path.basename(exp)} » contient des données personnelles (${sensibles.join(', ')}). ` +
+        "Supprimez-le du dépôt ET de son historique, puis déposez la version produite par « node anonymiser.js » " +
+        "ou par le bouton « Export anonymisé pour GitHub » du formulaire.");
+    }
+  }
   const { animations, dateDebut, dateFin, total } = chargerAnimations(exp, exp, {
     dateDebut: parseDate(R.periodeDebut), dateFin: parseDate(R.periodeFin),
     inclureSansDate: R.inclureSansDate, idsExclus: R.idsExclus,
