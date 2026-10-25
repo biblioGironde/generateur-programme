@@ -1,4 +1,4 @@
-# Générateur de programme · Quinzaine du numérique en bibliothèque
+# Générateur de programme
 
 À partir de l'export du formulaire d'inscription (Framaforms : TSV, CSV ou Excel), produit :
 
