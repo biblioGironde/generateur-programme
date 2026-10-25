@@ -1,0 +1,78 @@
+{
+  "nomFichier": "programme-qdnb",
+  "tri": "date",
+  "uneAnimationParPage": false,
+  "tailleMiniDemiPage": 6.5,
+  "periodeDebut": "",
+  "periodeFin": "",
+  "inclureSansDate": true,
+  "idsExclus": "",
+  "couleurs": {
+    "date": "#47b654",
+    "infos": "#47b654",
+    "bibliotheque": "#ee3063",
+    "liens": "#ee3063",
+    "themes": "#ee3063",
+    "titre": "#963c96",
+    "description": "#ee3063",
+    "tableEnteteFond": "#47b654",
+    "tableEnteteTexte": "#ffffff",
+    "tableLigneFond": "#ffde1e",
+    "tableLigneAltFond": "#ffffff",
+    "tableTexte": "#ee3063",
+    "carteFond": "#47b654",
+    "carteCommunes": "#e6e6e6",
+    "carteContours": "#ffffff",
+    "carteMarqueur": "#ffde1e",
+    "carteEtiquettes": "#555555",
+    "carteTitre": "#ffffff",
+    "pagesComplement": "#ffde1e"
+  },
+  "tailles": {
+    "date": 17,
+    "commune": 13,
+    "titre": 10,
+    "description": 7.5,
+    "infos": 7,
+    "tableau": 7,
+    "intro": 20
+  },
+  "pagesIntro": [
+    {
+      "texte": "La Quinzaine du numérique en bibliothèque, c'est {nb_bibliotheques} bibliothèques girondines proposant {nb_animations} ateliers, des rencontres, des concerts, des conférences… autour et par la création numérique. Ça se passe forcément à côté de chez vous !",
+      "fond": "#47b654",
+      "couleurTexte": "#ffffff",
+      "pageVideApres": false
+    },
+    {
+      "texte": "La thématique de la Quinzaine du numérique en bibliothèque est cette année Info ou intox, l'éducation aux médias et à l'image en bibliothèque. C'est l'occasion de découvrir comment muscler son regard vis-à-vis des médias, des réseaux sociaux, de l'intelligence artificielle…",
+      "fond": "#ffde1e",
+      "couleurTexte": "#47b654",
+      "pageVideApres": true
+    },
+    {
+      "texte": "La Quinzaine du numérique, c'est pour découvrir, pour soi-même ou en famille, des jeux vidéo, de la robotique, de l'impression 3D, de la musique assistée par ordinateur, de la réalité virtuelle, de l'électronique, de la programmation, des ateliers audiovisuels… et bien plus encore.",
+      "fond": "#ee3063",
+      "couleurTexte": "#ffffff",
+      "pageVideApres": true
+    }
+  ],
+  "carte": {
+    "afficher": true,
+    "position": 1,
+    "titre": ""
+  },
+  "intercalaires": {
+    "premierePage": 8,
+    "intervalle": 16
+  },
+  "tableau": {
+    "afficher": true,
+    "titre": "",
+    "tri": "commune"
+  },
+  "completerMultipleDe4": true,
+  "kirby": {
+    "generer": false
+  }
+}

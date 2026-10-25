@@ -1,0 +1,93 @@
+# Génère le programme PDF de la Quinzaine du numérique à chaque dépôt d'un nouvel export
+# dans le dossier entree/, ou à la demande depuis l'onglet Actions (« Run workflow »).
+name: Générer le programme
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'entree/**'
+      - 'lib/**'
+      - 'fonts/**'
+      - 'data/**'
+      - 'cli.js'
+      - 'package*.json'
+      - '.github/workflows/programme.yml'
+  workflow_dispatch:
+    inputs:
+      periode_debut:
+        description: 'Début de période (AAAA-MM-JJ, vide = détection automatique)'
+        required: false
+        default: ''
+      periode_fin:
+        description: 'Fin de période (AAAA-MM-JJ, vide = détection automatique)'
+        required: false
+        default: ''
+      ids_exclus:
+        description: 'Numéros de saisie à exclure, séparés par des virgules (en plus de reglages.json)'
+        required: false
+        default: ''
+      tri:
+        description: 'Ordre des fiches'
+        type: choice
+        options: ['réglage enregistré', 'date', 'commune']
+        default: 'réglage enregistré'
+      kirby:
+        description: 'Produire aussi le zip pour le site Kirby'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # nécessaire pour mettre à jour la release « programme »
+
+concurrency:
+  group: programme
+  cancel-in-progress: true
+
+jobs:
+  generer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --omit=dev
+
+      - name: Générer le PDF
+        env:
+          QDNB_PERIODE_DEBUT: ${{ inputs.periode_debut }}
+          QDNB_PERIODE_FIN: ${{ inputs.periode_fin }}
+          QDNB_IDS_EXCLUS: ${{ inputs.ids_exclus }}
+          QDNB_TRI: ${{ inputs.tri }}
+          # Sur un push, il n'y a pas de champs : l'export Kirby est produit par défaut
+          QDNB_KIRBY: ${{ github.event_name == 'push' || inputs.kirby }}
+        run: |
+          if [ "$QDNB_KIRBY" = "true" ]; then
+            node cli.js --dossier entree --sortie sortie/programme-qdnb.pdf --kirby sortie/agenda-kirby.zip
+          else
+            node cli.js --dossier entree --sortie sortie/programme-qdnb.pdf
+          fi
+
+      - name: Joindre les fichiers à l'exécution
+        uses: actions/upload-artifact@v7
+        with:
+          name: programme-qdnb
+          path: sortie/*
+          retention-days: 30
+
+      # Release unique « programme » : toujours la dernière version, à la même adresse
+      - name: Publier dans la release « programme »
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view programme >/dev/null 2>&1; then
+            gh release create programme --title "Programme QDNB (dernière version)" \
+              --notes "Mis à jour automatiquement par le workflow « Générer le programme »." --latest
+          fi
+          gh release upload programme sortie/* --clobber
+          gh release edit programme --notes "Dernière génération : $(TZ=Europe/Paris date '+%d/%m/%Y à %H:%M') (commit ${GITHUB_SHA::7})."
