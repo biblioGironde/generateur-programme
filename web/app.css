@@ -54,3 +54,7 @@ code { background: #f0f0ec; padding: 1px 5px; border-radius: 4px; font-size: 12p
   .intro { grid-template-columns: 1fr; }
   #resultat iframe { height: 460px; }
 }
+
+/* Lien de retour de test */
+.bg-retour { margin: 24px auto 0; font-size: 13px; line-height: 1.4; text-align: center; opacity: .8; }
+.bg-retour a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
