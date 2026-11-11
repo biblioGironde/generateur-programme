@@ -97,3 +97,10 @@ Le même code (`lib/`) sert au navigateur et à Node : le PDF est identique dans
 | `data/communes-gironde.json` | contours des communes ([france-geojson](https://github.com/gregoiredavid/france-geojson), données IGN/Etalab) |
 
 Bibliothèques : [pdfkit](https://pdfkit.org), [pdf-lib](https://pdf-lib.js.org), [SheetJS](https://sheetjs.com). Leurs licences sont copiées dans `_site/vendor/` à la construction.
+
+## Licences
+
+- **Code** : © Département de la Gironde — biblio.gironde, sous licence [GNU Affero General Public License v3.0](LICENSE) ou ultérieure (AGPL-3.0-or-later). Vous pouvez le réutiliser et le modifier ; toute version modifiée, redistribuée ou mise en ligne, doit être publiée sous la même licence, avec son code source.
+- Police Darker Grotesque : SIL Open Font License 1.1 (`fonts/OFL.txt`).
+- Contours des communes (`data/communes-gironde.json`) : [france-geojson](https://github.com/gregoiredavid/france-geojson), données IGN/Etalab.
+- Bibliothèques pdfkit, pdf-lib et SheetJS : leurs licences sont copiées dans `_site/vendor/` à la construction.
